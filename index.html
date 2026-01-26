@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jessie Math - 圓形圖經營大師</title>
+
+    <!-- ✅ 快取連結預覽（請放在 <head> 裡） -->
+    <meta name="description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <!-- ✅ LINE / FB 預覽用 -->
+    <meta property="og:title" content="Jessie Math - 圓形圖經營大師">
+    <meta property="og:description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta property="og:type" content="website">
+
+    <!-- ✅ 預覽圖片-->
+    <meta property="og:image" content="g6-u13-2.png">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1536">
+    <meta property="og:image:alt" content="Jessie Math 遊戲封面">
+
+    <!-- ✅ 有些平台會參考 -->
+    <link rel="image_src" href="g6-u13-2.png">
+
+    <!-- ✅ Twitter / X（可用同一張圖） -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jessie Math - 圓形圖經營大師">
+    <meta name="twitter:description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta name="twitter:image" content="g6-u13-2.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary-blue: #5d5fef; --header-bg: #ffffff; --warn-orange: #f39c12; --correct-green: #27ae60; --wrong-red: #e74c3c; }
+        body { margin: 0; font-family: "Microsoft JhengHei", sans-serif; background-color: #f0f4f8; }
+
+        /* --- Hero 區 --- */
+        .hero-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 40px; background: var(--header-bg); border-bottom: 2px solid #e0e0e0; height: 80px;
+        }
+        .brand-area { display: flex; align-items: center; }
+        .avatar-circle {
+            width: 60px; height: 60px; border: 3px solid var(--warn-orange);
+            border-radius: 50%; overflow: hidden; margin-right: 15px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .avatar-circle img { width: 100%; height: auto; }
+        .brand-name { font-size: 28px; font-weight: 900; color: #2c3e50; }
+
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-btn {
+            display: flex; align-items: center; padding: 8px 18px; border-radius: 25px;
+            text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s;
+            white-space: nowrap;
+        }
+        .btn-home { border: 1px solid #ddd; color: #555; }
+        .btn-lobby { border: 1px solid #ddd; color: #555; }
+        .btn-back { border: 1.5px solid var(--primary-blue); color: var(--primary-blue); background: #f5f5ff; }
+        .nav-btn i { margin-right: 6px; }
+
+        /* --- 容器 --- */
+        .container { max-width: 900px; margin: 30px auto; padding: 30px; background: white; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; }
+        #login-screen, #game-screen { display: none; }
+        #login-screen { display: block; }
+
+        .rule-box { text-align: left; background: #fff9e6; padding: 20px; border-radius: 15px; margin: 20px 0; border-left: 8px solid var(--warn-orange); }
+        .leaderboard { margin-top: 30px; text-align: left; background: #f8f9fa; padding: 20px; border-radius: 15px; }
+        .leaderboard h3 { text-align: center; color: #2c3e50; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .rank-item { display: flex; justify-content: space-between; padding: 8px 15px; border-bottom: 1px solid #eee; }
+
+        .stats-bar { display: flex; justify-content: space-around; font-size: 22px; font-weight: bold; margin-bottom: 20px; color: var(--primary-blue); gap: 10px; flex-wrap: wrap; }
+        .question-hint { font-size: 1.4rem; font-weight: bold; color: #333; margin: 15px 0; background: #eef2ff; padding: 15px; border-radius: 10px; border-bottom: 4px solid #d0d7f0; }
+        .feedback-area { font-size: 1.5rem; font-weight: bold; margin-top: 20px; min-height: 40px; }
+        .correct { color: var(--correct-green); }
+        .wrong { color: var(--wrong-red); }
+
+        .chart-wrapper { position: relative; width: 320px; max-width: 100%; margin: 0 auto; }
+        .arrow-pointer {
+            position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+            font-size: 40px; color: #f39c12; animation: bounce 1s infinite; z-index: 10; display: none;
+        }
+        @keyframes bounce { 0%, 100% { top: 5%; } 50% { top: 12%; } }
+
+        .table-data { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1.1rem; }
+        .table-data th, .table-data td { border: 1px solid #ddd; padding: 12px; }
+        .table-data th { background-color: #f8f9fa; }
+
+        .option-container { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .option-btn { padding: 12px 25px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; background: white; transition: 0.2s; }
+        
+        .control-group { display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .btn-game { padding: 12px 30px; border: none; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; }
+        .btn-reset { background: #e74c3c; color: white; }
+        .btn-submit { background: var(--primary-blue); color: white; min-width: 180px; }
+        .btn-pause { background: var(--warn-orange); color: white; }
+
+        input[type="range"] { width: 80%; cursor: pointer; height: 12px; accent-color: var(--primary-blue); }
+
+        /* --- Footer --- */
+        footer{ padding: 18px 16px 28px; }
+        .footer-pill{
+            max-width: 980px;
+            margin: 0 auto;
+            display:flex;
+            justify-content: space-between;
+            align-items:center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.72);
+            border: 1px solid rgba(120,130,150,.22);
+            box-shadow: 0 14px 34px rgba(15,23,42,.10);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .footer-left, .footer-right{ display:flex; align-items:center; gap: 10px; }
+        .footer-dot{
+            width: 10px; height: 10px; border-radius: 999px;
+            background: var(--warn-orange);
+            box-shadow: 0 0 0 6px rgba(243,156,18,.18);
+        }
+        .footer-copy{ font-weight: 700; color:#2c3e50; font-size: 13px; }
+        .footer-icon{ width: 34px; height: 34px; border-radius: 12px; display:flex; align-items:center; justify-content:center;
+            background: rgba(93,95,239,.10); color: var(--primary-blue);
+        }
+        .footer-tagline{ font-weight: 800; color:#334155; font-size: 13px; }
+
+        /* --- RWD --- */
+        @media (max-width: 1024px){
+            .container{ margin: 22px 16px; padding: 24px; }
+            .hero-header{ padding: 10px 18px; }
+        }
+        @media (max-width: 768px){
+            .hero-header{ height: auto; padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
+            .brand-name{ font-size: 22px; }
+            .avatar-circle{ width: 50px; height: 50px; margin-right: 12px; }
+            .nav-buttons{ flex-wrap: wrap; justify-content: flex-end; }
+            .nav-btn{ padding: 8px 14px; font-size: 13px; }
+            .question-hint{ font-size: 1.2rem; }
+            .table-data{ font-size: 1rem; }
+            .chart-wrapper{ width: min(360px, 92vw); }
+            input[type="range"]{ width: 92%; }
+            .footer-pill{ border-radius: 22px; padding: 14px 16px; }
+        }
+        @media (max-width: 480px){
+            .container{ margin: 18px 12px; padding: 18px; border-radius: 18px; }
+            #playerName{ width: 92% !important; }
+            .option-btn{ width: 46%; padding: 12px 10px; font-size: 16px; }
+            .btn-game{ width: 100%; max-width: 360px; }
+            .stats-bar{ font-size: 18px; }
+            .footer-pill{ flex-direction: column; align-items: flex-start; gap: 10px; }
+            .footer-right{ width: 100%; justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero-header">
+        <div class="brand-area">
+            <div class="avatar-circle"><img src="JESSIEMATH-Q.png" alt="J"></div>
+            <div class="brand-name">Jessie Math</div>
+        </div>
+        <div class="nav-buttons">
+            <a href="https://jessiemath0703-chu.github.io/website2/" class="nav-btn btn-home"><i class="fas fa-home"></i>首頁</a>
+            <a href="https://jessiemath0703-chu.github.io/Game-Lobby/" class="nav-btn btn-lobby"><i class="fas fa-gamepad"></i>遊戲大廳</a>
+            <a href="https://jessiemath0703-chu.github.io/Game-Lobby/#g6-u13" class="nav-btn btn-back"><i class="fas fa-undo"></i>六年級統計圖表</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="login-screen">
+            <h1 style="color: #2c3e50;">📊數據糾察專家</h1>
+            <input type="text" id="playerName" placeholder="輸入店長姓名..." style="padding: 15px; width: 60%; border-radius: 12px; border: 2px solid #ddd; font-size: 18px; margin-bottom: 20px;">
+            
+            <div class="rule-box">
+                <h3>📜 挑戰說明</h3>
+                <ul>
+                    <li><b>數據多樣化：</b>包含旅遊花費、學科時間、血液募捐等多種現實數據。</li>
+                    <li><b>糾察難度提升：</b>需仔細核對「百分率」與「圓心角」是否匹配。</li>
+                    <li><b>自動存檔：</b>得分將自動上傳至前十名排行榜！</li>
+                </ul>
+            </div>
+
+            <button class="btn-game" style="background: #4caf50; color:white; width:220px; font-size: 22px; margin-bottom: 40px;" onclick="startGame()">開始挑戰</button>
+
+            <div class="leaderboard">
+                <h3>🏆 前十名菁英排行榜</h3>
+                <div id="rank-list"></div>
+            </div>
+        </div>
+
+        <div id="game-screen">
+            <div class="stats-bar">
+                <span>⏳ 時間: <span id="timer">60</span>s</span>
+                <span>⭐ 分數: <span id="score">0</span></span>
+                <span>🔥 Combo: <span id="combo">0</span></span>
+            </div>
+
+            <div class="question-hint" id="question-text">載入中...</div>
+            <div id="data-context" style="background: #fff9e6; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; display:none; border: 1px dashed #f39c12;"></div>
+            
+            <div id="game-content">
+                <div id="table-area" style="display:none; margin-bottom: 15px;"></div>
+                <div class="chart-wrapper">
+                    <div id="arrow" class="arrow-pointer"><i class="fas fa-long-arrow-alt-down"></i></div>
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div id="slider-area" style="display:none; margin-top:20px;">
+                    <p id="slider-label">調整中：<span id="slider-val">0</span></p>
+                    <input type="range" id="drawSlider" min="0" max="100" value="0" oninput="updateLiveChart(this.value)">
+                </div>
+            </div>
+
+            <div id="feedback" class="feedback-area"></div>
+            <div id="options" class="option-container"></div>
+
+            <div class="control-group">
+                <button class="btn-game btn-reset" onclick="location.reload()">🔄 重新開始</button>
+                <button class="btn-game btn-submit" id="submit-btn" style="display:none;" onclick="checkSliderAnswer()">✅ 確認答案</button>
+                <button class="btn-game btn-pause" onclick="alert('暫停休息！')">⏸ 暫停</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-pill">
+            <div class="footer-left">
+                <div class="footer-dot" aria-hidden="true"></div>
+                <div class="footer-copy">© 2025–2026 Jessie Math 捷析老師. All rights reserved.</div>
+            </div>
+            <div class="footer-right">
+                <div class="footer-icon" aria-hidden="true"><i class="fas fa-compass"></i></div>
+                <div class="footer-tagline">數學不迷路，Jessie 帶你走向理解。</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let score = 0, timeLeft = 60, combo = 0, myChart = null, timerInterval;
+        let currentCorrectAnswer = null, lastType = -1, isAngleMode = false, isProcessing = false;
+
+        // ✅ 題目不重複：同一回合內「題型不重複」+「題幹/數據簽名不重複」
+        let typeQueue = [];
+        const usedQuestionSignatures = new Set();
+
+        function nextTypeNoRepeat() {
+            if (typeQueue.length === 0) typeQueue = shuffle([0,1,2,3,4]); // 5 種題型輪完才重來
+            return typeQueue.pop();
+        }
+        function makeSignature(obj){
+            try { return JSON.stringify(obj); } catch(e){ return String(obj); }
+        }
+        function commitSignature(sig){
+            if (usedQuestionSignatures.has(sig)) return false;
+            usedQuestionSignatures.add(sig);
+            return true;
+        }
+
+        const themes = [
+            { name: "旅遊花費", items: ["住宿", "交通", "吃飯", "伴手禮", "門票"], unit: "元" },
+            { name: "學科複習", items: ["國語", "英文", "數學", "自然", "社會"], unit: "小時" },
+            { name: "血液募集", items: ["O型", "A型", "B型", "AB型"], unit: "袋" },
+            { name: "遊樂園面積", items: ["遊樂設施", "烤肉區", "觀光花園", "休憩廣場"], unit: "m²" },
+            { name: "店內銷量", items: ["飲料", "點心", "文具", "玩具", "紀念品"], unit: "份" }
+        ];
+        const colors = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"];
+
+        window.onload = updateLeaderboard;
+
+        function startGame() {
+            if (!document.getElementById('playerName').value) return alert("請輸入店長姓名！");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            nextQuestion();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            const name = document.getElementById('playerName').value;
+            let scores = JSON.parse(localStorage.getItem('jessieScores') || '[]');
+            scores.push({name, score});
+            scores.sort((a,b) => b.score - a.score);
+            localStorage.setItem('jessieScores', JSON.stringify(scores.slice(0, 10)));
+            alert(`營業結束！得分：${score}`);
+            location.reload();
+        }
+
+        function updateLeaderboard() {
+            const list = document.getElementById('rank-list');
+            let scores = JSON.parse(localStorage.getItem('jessieScores') || '[]');
+            if (scores.length === 0) { list.innerHTML = `<div style="text-align:center;color:#bbb">尚無資料</div>`; return; }
+            list.innerHTML = scores.map((s, i) => `
+                <div class="rank-item">
+                    <span>${i < 3 ? ['🥇','🥈','🥉'][i] : i+1+'.'} ${s.name}</span>
+                    <span>${s.score} pt</span>
+                </div>
+            `).join('');
+        }
+
+        function nextQuestion() {
+            isProcessing = false;
+
+            const type = nextTypeNoRepeat();
+            lastType = type;
+
+            document.getElementById('slider-area').style.display = 'none';
+            document.getElementById('table-area').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('data-context').style.display = 'none';
+            document.getElementById('arrow').style.display = 'none';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('options').innerHTML = '';
+            if(myChart) myChart.destroy();
+
+            if (type === 0) taskAnalyze();
+            else if (type === 1) taskDraw();
+            else if (type === 2) taskBugHunt();
+            else if (type === 3) taskConvert();
+            else taskPercentFromTable();
+        }
+
+        function shuffle(arr){ return [...arr].sort(() => 0.5 - Math.random()); }
+        function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+        function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+        // 產生差距更明顯的數據，避免都一樣
+        function genDistinctValues(n, minV, maxV) {
+            const vals = [];
+            let guard = 0;
+            const minGap = Math.max(8, Math.floor((maxV - minV) / 10));
+            while (vals.length < n && guard < 6000) {
+                guard++;
+                const v = randInt(minV, maxV);
+                const ok = vals.every(x => Math.abs(x - v) >= minGap);
+                if (ok) vals.push(v);
+            }
+            while (vals.length < n) vals.push(minV + vals.length * Math.max(10, Math.floor((maxV-minV)/(n+1))));
+            return vals;
+        }
+
+        function taskAnalyze() {
+            for(let tries=0; tries<40; tries++){
+                const theme = themes[Math.floor(Math.random() * themes.length)];
+                const count = randInt(3,5);
+                const selection = shuffle(theme.items).slice(0, count);
+
+                let minV = 20, maxV = 320;
+                if (theme.unit === "小時") { minV = 1; maxV = 18; }
+                if (theme.unit === "袋") { minV = 30; maxV = 240; }
+                if (theme.unit === "m²") { minV = 120; maxV = 980; }
+
+                const vals = genDistinctValues(count, minV, maxV);
+                const data = selection.map((name, i) => ({ name, val: vals[i] }));
+                data.sort((a,b) => b.val - a.val);
+
+                const qType = randInt(0,5);
+                let qText = "";
+                let correct = "";
+
+                if (qType === 0) { qText = `哪一項 ${theme.name} 最高？`; correct = data[0].name; }
+                else if (qType === 1) { qText = `哪一項 ${theme.name} 最低？`; correct = data[data.length-1].name; }
+                else if (qType === 2) { qText = `哪一項 ${theme.name} 排名第二？`; correct = data[1].name; }
+                else if (qType === 3) {
+                    qText = `哪一項 ${theme.name} 與第一名差距最小？`;
+                    const top = data[0].val;
+                    let best = data[1];
+                    for (let i=1;i<data.length;i++){ if ((top - data[i].val) < (top - best.val)) best = data[i]; }
+                    correct = best.name;
+                } else if (qType === 4) {
+                    qText = `哪一項 ${theme.name} 最接近平均值？`;
+                    const avg = data.reduce((s,d)=>s+d.val,0)/data.length;
+                    let best = data[0];
+                    data.forEach(d => { if (Math.abs(d.val-avg) < Math.abs(best.val-avg)) best = d; });
+                    correct = best.name;
+                } else {
+                    qText = `哪一項 ${theme.name} 超過平均值？`;
+                    const avg = data.reduce((s,d)=>s+d.val,0)/data.length;
+                    const above = data.filter(d=>d.val>avg);
+                    if (above.length > 0) correct = above[randInt(0, above.length-1)].name;
+                    else {
+                        let best = data[0];
+                        data.forEach(d => { if (Math.abs(d.val-avg) < Math.abs(best.val-avg)) best = d; });
+                        correct = best.name;
+                        qText = `哪一項 ${theme.name} 最接近平均值？`;
+                    }
+                }
+
+                const sig = makeSignature({type:"analyze", theme:theme.name, unit:theme.unit, qText, data});
+                if(!commitSignature(sig)) continue;
+
+                document.getElementById('question-text').innerText = qText;
+                currentCorrectAnswer = correct;
+
+                let html = `<table class="table-data"><tr><th>品項</th><th>數據 ${theme.unit}</th></tr>`;
+                data.forEach(d => html += `<tr><td>${d.name}</td><td>${d.val}</td></tr>`);
+                document.getElementById('table-area').innerHTML = html + `</table>`;
+                document.getElementById('table-area').style.display = 'block';
+
+                createOptions(selection);
+                return;
+            }
+            // 保底
+            document.getElementById('question-text').innerText = "載入中...";
+            nextQuestion();
+        }
+
+        function taskDraw() {
+            for(let tries=0; tries<40; tries++){
+                isAngleMode = Math.random() > 0.5;
+
+                let target;
+                if (isAngleMode) {
+                    target = (randInt(3,34)) * 10;
+                    if (target >= 360) target = 350;
+                } else {
+                    const steps = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90];
+                    target = steps[randInt(0, steps.length-1)];
+                }
+
+                const qText = isAngleMode ? `繪製圓心角：${target}°` : `繪製百分比：${target}%`;
+                const sig = makeSignature({type:"draw", mode:isAngleMode?"angle":"pct", target});
+                if(!commitSignature(sig)) continue;
+
+                currentCorrectAnswer = target;
+                let slider = document.getElementById('drawSlider');
+                slider.max = isAngleMode ? 360 : 100;
+                slider.value = isAngleMode ? 180 : 50;
+
+                document.getElementById('question-text').innerText = qText;
+                document.getElementById('slider-area').style.display = 'block';
+                document.getElementById('submit-btn').style.display = 'inline-block';
+                updateLiveChart(slider.value);
+                return;
+            }
+            nextQuestion();
+        }
+
+        // ✅ 糾察隊：題型增加 + 數據改變更大（不再都一樣）
+        function taskBugHunt() {
+            for(let tries=0; tries<50; tries++){
+                const mode = randInt(0,6);   // 7 種題型
+                const isBug = Math.random() > 0.5;
+                let displayMsg = "";
+                let labels = [], data = [];
+                let expected = "";
+
+                // 工具：產生 3~5 項百分率（整數）且總合 100
+                function genPctParts(k){
+                    const parts = [];
+                    let rest = 100;
+                    for(let i=0;i<k-1;i++){
+                        const maxP = rest - (k-1-i)*5;
+                        const p = clamp(randInt(5, Math.min(45, maxP)), 5, maxP);
+                        parts.push(p);
+                        rest -= p;
+                    }
+                    parts.push(rest);
+                    return shuffle(parts);
+                }
+                function pctToAngle(p){ return Math.round(p * 3.6); }
+
+                if (mode === 0) {
+                    const pct = [10,15,20,25,30,35,40,45,50][randInt(0,8)];
+                    const trueAngle = pctToAngle(pct);
+                    const shownAngle = isBug ? clamp(trueAngle + [20,30,40,-20,-30,-40][randInt(0,5)], 10, 350) : trueAngle;
+
+                    displayMsg = `標籤顯示 ${pct}%，圖上量得圓心角為 ${shownAngle}°，是否正確？`;
+                    labels = ["目標區", "其餘"];
+                    data = [shownAngle, 360 - shownAngle];
+                    expected = isBug ? "有誤" : "正確";
+                }
+                else if (mode === 1) {
+                    const angle = [30,45,60,72,90,108,120,135,150,180,210,240][randInt(0,11)];
+                    const truePct = Math.round(angle / 3.6);
+                    const shownPct = isBug ? clamp(truePct + [5,8,10,-5,-8,-10][randInt(0,5)], 1, 99) : truePct;
+
+                    displayMsg = `標籤顯示 ${angle}° 對應 ${shownPct}%，是否正確？`;
+                    labels = ["目標區", "其餘"];
+                    data = [angle, 360 - angle];
+                    expected = isBug ? "有誤" : "正確";
+                }
+                else if (mode === 2) {
+                    const k = randInt(3,5);
+                    const parts = genPctParts(k);
+                    const names = ["A","B","C","D","E"].slice(0,k);
+                    let shown = [...parts];
+
+                    if (isBug) {
+                        const idx = randInt(0,k-1);
+                        const delta = [5,10,-5,-10][randInt(0,3)];
+                        shown[idx] = clamp(shown[idx] + delta, 1, 99);
+                    }
+
+                    const sum = shown.reduce((s,x)=>s+x,0);
+                    displayMsg = `下週計畫：${names.map((n,i)=>`${n} ${shown[i]}%`).join("、")}。總合是否正確？`;
+
+                    labels = names;
+                    data = shown;
+                    expected = (sum === 100) ? "正確" : "有誤";
+                }
+                else if (mode === 3) {
+                    const k = 4;
+                    const parts = genPctParts(k);
+                    const names = ["餐飲","交通","娛樂","其他"];
+                    const missingIdx = randInt(0, k-1);
+                    const missingTrue = parts[missingIdx];
+                    const shownMissing = isBug ? clamp(missingTrue + [8,10,-8,-10][randInt(0,3)], 1, 99) : missingTrue;
+
+                    const shownParts = parts.map((p,i)=> i===missingIdx ? shownMissing : p);
+                    const sum = shownParts.reduce((s,x)=>s+x,0);
+
+                    displayMsg = `資料缺一項，已補上 ${names[missingIdx]} ${shownMissing}%。目前四項總合是否正確？`;
+                    labels = names;
+                    data = shownParts;
+                    expected = (sum === 100) ? "正確" : "有誤";
+                }
+                else if (mode === 4) {
+                    const k = 4;
+                    const parts = genPctParts(k);
+                    const names = ["甲","乙","丙","丁"];
+                    const maxIdx = parts.indexOf(Math.max(...parts));
+                    const claimIdx = isBug ? ((maxIdx + randInt(1,3)) % k) : maxIdx;
+
+                    displayMsg = `文字描述：${names[claimIdx]} 佔比最大。是否正確？`;
+                    labels = names;
+                    data = parts;
+                    expected = (claimIdx === maxIdx) ? "正確" : "有誤";
+                }
+                else if (mode === 5) {
+                    const k = 5;
+                    const parts = genPctParts(k);
+                    const names = ["A","B","C","D","E"];
+                    const i1 = randInt(0,k-1);
+                    let i2 = randInt(0,k-1);
+                    while(i2===i1) i2 = randInt(0,k-1);
+
+                    const trueSum = parts[i1] + parts[i2];
+                    const shownSum = isBug ? clamp(trueSum + [5,10,-5,-10][randInt(0,3)], 1, 99) : trueSum;
+
+                    displayMsg = `判讀：${names[i1]} 與 ${names[i2]} 合計 ${shownSum}%。是否正確？`;
+                    labels = names;
+                    data = parts;
+                    expected = (shownSum === trueSum) ? "正確" : "有誤";
+                }
+                else {
+                    const k = 4;
+                    const pcts = genPctParts(k);
+                    const angles = pcts.map(p=>Math.round(p*3.6));
+                    const names = ["A","B","C","D"];
+
+                    let shownAngles = [...angles];
+                    if (isBug) {
+                        const idx = randInt(0,k-1);
+                        const delta = [10,20,-10,-20][randInt(0,3)];
+                        shownAngles[idx] = clamp(shownAngles[idx] + delta, 10, 350);
+                    }
+                    const sumA = shownAngles.reduce((s,x)=>s+x,0);
+
+                    displayMsg = `標註圓心角：${names.map((n,i)=>`${n} ${shownAngles[i]}°`).join("、")}。總合是否正確？`;
+                    labels = names;
+                    data = shownAngles;
+                    expected = (sumA === 360) ? "正確" : "有誤";
+                }
+
+                const sig = makeSignature({type:"bughunt", mode, isBug, displayMsg, labels, data, expected});
+                if(!commitSignature(sig)) continue;
+
+                currentCorrectAnswer = expected;
+                document.getElementById('question-text').innerText = "【糾察隊】數據與圖形匹配檢查：";
+                document.getElementById('data-context').style.display = 'block';
+                document.getElementById('data-context').innerText = displayMsg;
+                document.getElementById('arrow').style.display = 'block';
+                updateChart(data, labels);
+                createOptions(["正確", "有誤"]);
+                return;
+            }
+            nextQuestion();
+        }
+
+        function taskConvert() {
+            for(let tries=0; tries<40; tries++){
+                const mode = Math.random() > 0.5 ? "角度轉百分率" : "百分率轉角度";
+                let correct;
+
+                if (mode === "角度轉百分率") {
+                    const angles = [30, 45, 60, 72, 90, 108, 120, 135, 144, 150, 180, 210, 240, 270, 300];
+                    const angle = angles[randInt(0, angles.length-1)];
+                    correct = Math.round((angle / 360) * 100);
+
+                    const qText = `圓心角 ${angle}° 等於多少百分率？`;
+                    const sig = makeSignature({type:"convert", mode, angle, correct});
+                    if(!commitSignature(sig)) continue;
+
+                    document.getElementById('question-text').innerText = qText;
+                    currentCorrectAnswer = `${correct}%`;
+
+                    const opts = new Set();
+                    opts.add(currentCorrectAnswer);
+                    while (opts.size < 4) {
+                        const delta = [5,10,15,20,-5,-10,-15,-20][randInt(0,7)];
+                        let v = clamp(correct + delta, 1, 99);
+                        opts.add(`${v}%`);
+                    }
+                    createOptions(shuffle([...opts]));
+                    updateChart([angle, 360 - angle], ["目標區", "其餘"]);
+                    return;
+                } else {
+                    const pcts = [5,10,12,15,20,25,30,33,35,40,45,50,60,66,75,80];
+                    const pct = pcts[randInt(0, pcts.length-1)];
+                    correct = Math.round(pct * 3.6);
+
+                    const qText = `百分率 ${pct}% 對應圓心角是多少度？`;
+                    const sig = makeSignature({type:"convert", mode, pct, correct});
+                    if(!commitSignature(sig)) continue;
+
+                    document.getElementById('question-text').innerText = qText;
+                    currentCorrectAnswer = `${correct}°`;
+
+                    const opts = new Set();
+                    opts.add(currentCorrectAnswer);
+                    while (opts.size < 4) {
+                        const delta = [10,20,30,-10,-20,-30][randInt(0,5)];
+                        let v = clamp(correct + delta, 10, 350);
+                        v = Math.round(v/5)*5;
+                        opts.add(`${v}°`);
+                    }
+                    createOptions(shuffle([...opts]));
+                    updateChart([correct, 360 - correct], ["目標區", "其餘"]);
+                    return;
+                }
+            }
+            nextQuestion();
+        }
+
+        function taskPercentFromTable() {
+            for(let tries=0; tries<40; tries++){
+                const theme = themes[Math.floor(Math.random() * themes.length)];
+                const count = 4;
+                const selection = shuffle(theme.items).slice(0, count);
+
+                let minV = 20, maxV = 320;
+                if (theme.unit === "小時") { minV = 2; maxV = 16; }
+                if (theme.unit === "袋") { minV = 40; maxV = 220; }
+                if (theme.unit === "m²") { minV = 180; maxV = 980; }
+
+                const vals = genDistinctValues(count, minV, maxV);
+                const data = selection.map((name, i) => ({ name, val: vals[i] }));
+
+                const total = data.reduce((s,d)=>s+d.val,0);
+                const pick = data[randInt(0, data.length-1)];
+
+                const qMode = randInt(0,2);
+                let qText = "", correct = "";
+
+                if (qMode === 0) {
+                    const pct = Math.round((pick.val/total)*100);
+                    qText = `在 ${theme.name} 中，${pick.name} 約占多少百分率？`;
+                    correct = `${pct}%`;
+
+                    const sig = makeSignature({type:"pctFromTable", theme:theme.name, unit:theme.unit, qMode, pick:pick.name, data, correct, qText});
+                    if(!commitSignature(sig)) continue;
+
+                    document.getElementById('question-text').innerText = qText;
+                    currentCorrectAnswer = correct;
+
+                    const opts = new Set([currentCorrectAnswer]);
+                    while (opts.size < 4) {
+                        const delta = [3,5,8,10,-3,-5,-8,-10][randInt(0,7)];
+                        let v = clamp(pct + delta, 1, 99);
+                        opts.add(`${v}%`);
+                    }
+                    createOptions(shuffle([...opts]));
+                } else if (qMode === 1) {
+                    const ang = Math.round((pick.val/total)*360);
+                    qText = `把 ${theme.name} 畫成圓形圖，${pick.name} 的圓心角約是多少度？`;
+                    correct = `${ang}°`;
+
+                    const sig = makeSignature({type:"pctFromTable", theme:theme.name, unit:theme.unit, qMode, pick:pick.name, data, correct, qText});
+                    if(!commitSignature(sig)) continue;
+
+                    document.getElementById('question-text').innerText = qText;
+                    currentCorrectAnswer = correct;
+
+                    const opts = new Set([currentCorrectAnswer]);
+                    while (opts.size < 4) {
+                        const delta = [10,15,20,-10,-15,-20][randInt(0,5)];
+                        let v = clamp(ang + delta, 5, 355);
+                        v = Math.round(v/5)*5;
+                        opts.add(`${v}°`);
+                    }
+                    createOptions(shuffle([...opts]));
+                } else {
+                    const pairs = new Set();
+                    function key(x,y){ return [x,y].sort().join("+"); }
+                    while (pairs.size < 4) {
+                        const x = data[randInt(0, data.length-1)];
+                        let y = data[randInt(0, data.length-1)];
+                        while (y.name === x.name) y = data[randInt(0, data.length-1)];
+                        pairs.add(key(x.name, y.name));
+                    }
+                    let bestPair = null, bestVal = -Infinity;
+                    [...pairs].forEach(k=>{
+                        const [xN,yN]=k.split("+");
+                        const xV = data.find(d=>d.name===xN).val;
+                        const yV = data.find(d=>d.name===yN).val;
+                        const s = xV + yV;
+                        if (s > bestVal) { bestVal = s; bestPair = k; }
+                    });
+
+                    qText = `在 ${theme.name} 中，哪一組兩項加總最大？`;
+                    correct = bestPair;
+
+                    const sig = makeSignature({type:"pctFromTable", theme:theme.name, unit:theme.unit, qMode, data, correct, qText, pairs:[...pairs].sort()});
+                    if(!commitSignature(sig)) continue;
+
+                    document.getElementById('question-text').innerText = qText;
+                    currentCorrectAnswer = correct;
+                    createOptions(shuffle([...pairs]));
+                }
+
+                let html = `<table class="table-data"><tr><th>品項</th><th>數據 ${theme.unit}</th></tr>`;
+                data.forEach(d => html += `<tr><td>${d.name}</td><td>${d.val}</td></tr>`);
+                document.getElementById('table-area').innerHTML = html + `</table>`;
+                document.getElementById('table-area').style.display = 'block';
+
+                updateChart(data.map(d=>d.val), data.map(d=>d.name));
+                return;
+            }
+            nextQuestion();
+        }
+
+        function updateLiveChart(val) {
+            document.getElementById('slider-val').innerText = val + (isAngleMode ? "°" : "%");
+            updateChart([val, (isAngleMode?360:100) - val], ["繪製區域", "剩餘"]);
+        }
+
+        function updateChart(data, labels) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'pie',
+                data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
+                options: { responsive: true, maintainAspectRatio: true, animation: { duration: 250 }, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function createOptions(arr) {
+            const div = document.getElementById('options');
+            div.innerHTML = '';
+            arr.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = text;
+                btn.onclick = () => handleAnswer(text);
+                div.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(ans) {
+            if (isProcessing) return;
+            isProcessing = true;
+            if (ans === currentCorrectAnswer) {
+                combo++;
+                score += 100 + (combo * 50);
+                timeLeft += 5;
+                document.getElementById('feedback').innerHTML = `<span class="correct">✅ 正確！答案是 ${currentCorrectAnswer}</span>`;
+            } else {
+                combo = 0;
+                timeLeft -= 5;
+                document.getElementById('feedback').innerHTML = `<span class="wrong">❌ 答錯了！正確答案是：${currentCorrectAnswer}</span>`;
+            }
+            document.getElementById('score').innerText = score;
+            document.getElementById('combo').innerText = combo;
+            setTimeout(nextQuestion, 1500);
+        }
+
+        function checkSliderAnswer() {
+            let val = parseInt(document.getElementById('drawSlider').value);
+            let tolerance = isAngleMode ? 10 : 5;
+            if (Math.abs(val - currentCorrectAnswer) <= tolerance) handleAnswer(currentCorrectAnswer);
+            else handleAnswer("誤差過大！應為 " + currentCorrectAnswer);
+        }
+    </script>
+</body>
+</html>
