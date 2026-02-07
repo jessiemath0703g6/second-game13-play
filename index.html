@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jessie Math - 遺跡資源分布</title>
+
+    <meta name="description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta property="og:title" content="Jessie Math - 遺跡資源分布">
+    <meta property="og:description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="g6-u13-2.jpg">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1536">
+    <meta property="og:image:alt" content="Jessie Math 遊戲封面">
+    
+    <link rel="image_src" href="g6-u13-2.jpg">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jessie Math - 遺跡資源分布">
+    <meta name="twitter:description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta name="twitter:image" content="g6-u13-2.jpg">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- 迷宮/末日工業風格配色 --- */
+        :root { 
+            --primary-metal: #455a64;    /* 冷金屬灰 */
+            --header-bg: #263238;        /* 深色終端機背景 */
+            --warn-rust: #d84315;        /* 鐵鏽橘/警告 */
+            --tech-green: #00e676;       /* 駭客綠/正確 */
+            --error-red: #ff1744;        /* 警報紅/錯誤 */
+            --concrete: #cfd8dc;         /* 混凝土灰 */
+            --sand: #5d4037;             /* 泥土/沙塵 */
+        }
+
+        body { 
+            margin: 0; 
+            font-family: "Courier New", "Microsoft JhengHei", monospace; 
+            background-color: #212121; 
+            background-image: radial-gradient(#37474f 15%, transparent 16%), radial-gradient(#37474f 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            color: #eceff1;
+        }
+
+        /* --- Hero 區 (控制台頂部) --- */
+        .hero-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 40px; background: var(--header-bg); 
+            border-bottom: 4px solid var(--warn-rust); 
+            height: 80px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+        .brand-area { display: flex; align-items: center; }
+        .avatar-circle {
+            width: 60px; height: 60px; border: 3px solid var(--warn-rust);
+            border-radius: 10%; 
+            overflow: hidden; margin-right: 15px;
+            display: flex; justify-content: center; align-items: center;
+            background: #000;
+        }
+        .avatar-circle img { width: 100%; height: auto; opacity: 0.9; }
+        .brand-name { 
+            font-size: 28px; font-weight: 900; color: #eceff1; 
+            text-shadow: 2px 2px #000; letter-spacing: 2px;
+        }
+
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-btn {
+            display: flex; align-items: center; padding: 8px 18px; 
+            border: 2px solid #546e7a; border-radius: 4px; 
+            text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s;
+            white-space: nowrap; color: #b0bec5; background: #37474f;
+            text-transform: uppercase;
+        }
+        .nav-btn:hover { background: var(--warn-rust); color: white; border-color: var(--warn-rust); }
+        .btn-back { border: 2px solid var(--tech-green); color: var(--tech-green); background: rgba(0, 230, 118, 0.1); }
+        .nav-btn i { margin-right: 6px; }
+
+        /* --- 容器 (主機面板) --- */
+        .container { 
+            max-width: 900px; margin: 30px auto; padding: 30px; 
+            background: #37474f; 
+            border: 2px solid #78909c;
+            border-radius: 5px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
+            text-align: center; 
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .container::before, .container::after {
+            content: '+'; position: absolute; color: #78909c; font-size: 20px;
+        }
+        .container::before { top: 5px; left: 10px; }
+        .container::after { top: 5px; right: 10px; }
+
+        #login-screen, #game-screen { display: none; }
+        #login-screen { display: block; }
+
+        .rule-box { 
+            text-align: left; background: rgba(0,0,0,0.3); 
+            padding: 20px; border: 1px dashed var(--warn-rust); 
+            margin: 20px 0; color: #cfd8dc; 
+        }
+        .rule-box h3 { color: var(--warn-rust); margin-top: 0; }
+        
+        .leaderboard { 
+            margin-top: 30px; text-align: left; 
+            background: #263238; padding: 20px; border: 1px solid #546e7a; 
+        }
+        .leaderboard h3 { 
+            text-align: center; color: var(--tech-green); 
+            border-bottom: 2px solid #546e7a; padding-bottom: 10px; letter-spacing: 1px;
+        }
+        .rank-item { 
+            display: flex; justify-content: space-between; padding: 10px 15px; 
+            border-bottom: 1px solid #455a64; color: #b0bec5;
+        }
+
+        .stats-bar { 
+            display: flex; justify-content: space-around; font-size: 22px; font-weight: bold; 
+            margin-bottom: 20px; color: var(--tech-green); gap: 10px; flex-wrap: wrap; 
+            font-family: "Courier New", monospace; text-shadow: 0 0 5px var(--tech-green);
+        }
+        
+        .question-hint { 
+            font-size: 1.4rem; font-weight: bold; color: #eceff1; margin: 15px 0; 
+            background: #455a64; padding: 15px; border-left: 5px solid var(--warn-rust); 
+            border-radius: 0 5px 5px 0;
+            word-wrap: break-word;
+        }
+
+        .feedback-area { font-size: 1.5rem; font-weight: bold; margin-top: 20px; min-height: 40px; text-shadow: 1px 1px 0 #000;}
+        .correct { color: var(--tech-green); }
+        .wrong { color: var(--error-red); }
+
+        .chart-wrapper { position: relative; width: 320px; max-width: 100%; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+        .arrow-pointer {
+            position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+            font-size: 40px; color: var(--warn-rust); animation: bounce 1s infinite; z-index: 10; display: none;
+            text-shadow: 0 0 10px yellow;
+        }
+        @keyframes bounce { 0%, 100% { top: 5%; } 50% { top: 12%; } }
+
+        .table-data { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1.1rem; color: #eceff1; border: 1px solid #546e7a; }
+        .table-data th, .table-data td { border: 1px solid #546e7a; padding: 12px; background: #263238; }
+        .table-data th { background-color: #37474f; color: var(--warn-rust); text-transform: uppercase; }
+
+        .option-container { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .option-btn { 
+            padding: 12px 25px; border: 2px solid #546e7a; border-radius: 2px; 
+            cursor: pointer; font-size: 18px; font-weight: bold; 
+            background: #263238; color: #eceff1; transition: 0.2s; 
+            font-family: "Courier New", monospace;
+        }
+        .option-btn:hover { background: #546e7a; border-color: var(--tech-green); box-shadow: 0 0 10px var(--tech-green); }
+
+        .control-group { display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .btn-game { 
+            padding: 12px 30px; border: none; border-radius: 2px; cursor: pointer; 
+            font-size: 18px; font-weight: bold; font-family: "Courier New", monospace; 
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-reset { background: #37474f; border: 1px solid var(--error-red); color: var(--error-red); }
+        .btn-submit { background: var(--warn-rust); color: black; min-width: 180px; box-shadow: 0 0 10px var(--warn-rust); }
+        .btn-pause { background: #546e7a; color: white; }
+
+        input[type="range"] { width: 80%; cursor: pointer; height: 12px; accent-color: var(--warn-rust); background: #263238; }
+        input[type="text"] { background: #263238; color: white; border-color: #546e7a; font-family: "Courier New"; }
+
+        /* --- Footer --- */
+        footer{ padding: 18px 16px 28px; }
+        .footer-pill{
+            max-width: 980px; margin: 0 auto; display:flex; justify-content: space-between; align-items:center;
+            gap: 14px; padding: 14px 18px; border-radius: 5px;
+            background: #263238; border: 1px solid #455a64;
+            box-shadow: 0 14px 34px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+        .footer-left, .footer-right{ display:flex; align-items:center; gap: 10px; }
+        .footer-center {
+            font-weight: 700; color: var(--warn-rust);
+            text-transform: uppercase; letter-spacing: 1px; text-align: center;
+        }
+        .footer-dot{
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--tech-green);
+            box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.2);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .footer-copy{ font-weight: 700; color:#90a4ae; font-size: 13px; }
+        .footer-icon{ 
+            width: 34px; height: 34px; border-radius: 4px; display:flex; align-items:center; justify-content:center;
+            background: rgba(216, 67, 21, 0.2); color: var(--warn-rust);
+        }
+        .footer-tagline{ font-weight: 800; color:#b0bec5; font-size: 13px; }
+
+        /* --- ✅ 更新後的 RWD 強化方案 --- */
+        @media (max-width: 1024px){
+            .container{ margin: 20px auto; width: 92%; padding: 25px; }
+        }
+
+        @media (max-width: 768px){
+            .hero-header{ height: auto; padding: 15px; flex-direction: column; gap: 15px; }
+            .brand-area { width: 100%; justify-content: center; }
+            .nav-buttons { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .nav-btn { flex: 1; justify-content: center; padding: 10px 5px; font-size: 12px; }
+            
+            .stats-bar { font-size: 18px; justify-content: center; }
+            .question-hint { font-size: 1.1rem; padding: 12px; }
+            .footer-pill { flex-direction: column; text-align: center; padding: 20px; }
+            .footer-center { margin: 10px 0; }
+        }
+
+        @media (max-width: 480px){
+            .container { padding: 15px; margin: 10px auto; width: 95%; border-radius: 8px; }
+            .brand-name { font-size: 20px; }
+            .avatar-circle { width: 45px; height: 45px; }
+            #playerName { width: 100% !important; box-sizing: border-box; }
+            .option-btn { width: 100%; margin-bottom: 5px; }
+            .btn-game { width: 100%; }
+            .table-data { font-size: 0.9rem; }
+            .table-data th, .table-data td { padding: 8px; }
+            input[type="range"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero-header">
+        <div class="brand-area">
+            <div class="avatar-circle"><img src="JESSIEMATH-Q.png" alt="J"></div>
+            <div class="brand-name">Jessie Math</div>
+        </div>
+        <div class="nav-buttons">
+            <a href="https://jessiemath0703-chu.github.io/website2/" class="nav-btn btn-home"><i class="fas fa-home"></i>基地首頁</a>
+            <a href="https://jessiemath0703-chu.github.io/Game-Lobby/" class="nav-btn btn-lobby"><i class="fas fa-gamepad"></i>任務大廳</a>
+            <a href="https://jessiemath0703-chu.github.io/Game-Lobby/#g6-u13" class="nav-btn btn-back"><i class="fas fa-database"></i>統計資料庫</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="login-screen">
+            <h1 style="color: var(--warn-rust); text-transform: uppercase; letter-spacing: 2px;">⚠️ 迷宮生存戰：圓形圖解碼</h1>
+            <p style="color:#b0bec5; font-size: 14px;">Jessie Math - 遺跡資源分布</p>
+            <input type="text" id="playerName" placeholder="輸入行者(Runner)代號..." style="padding: 15px; width: 60%; border-radius: 4px; border: 2px solid #546e7a; font-size: 18px; margin-bottom: 20px; outline: none;">
+            
+            <div class="rule-box">
+                <h3>📜 任務簡報 (Mission Brief)</h3>
+                <ul>
+                    <li><b>數據解析：</b>分析迷宮分區、物資配給、鬼火獸威脅數據。</li>
+                    <li><b>異常偵測：</b>W.C.K.D. 的數據可能被竄改，檢查「百分率」與「圓心角」是否吻合。</li>
+                    <li><b>排行榜：</b>優秀的行者數據將上傳至總部伺服器。</li>
+                </ul>
+            </div>
+
+            <button class="btn-game" style="background: var(--tech-green); color:#000; width:220px; font-size: 22px; margin-bottom: 40px; box-shadow: 0 0 15px var(--tech-green);" onclick="startGame()">啟動終端機</button>
+
+            <div class="leaderboard">
+                <h3>🏆 菁英行者排行榜</h3>
+                <div id="rank-list"></div>
+            </div>
+        </div>
+
+        <div id="game-screen">
+            <div class="stats-bar">
+                <span>⏳ 倒數: <span id="timer">60</span>s</span>
+                <span>⭐ 績效: <span id="score">0</span></span>
+                <span>🔥 連鎖: <span id="combo">0</span></span>
+            </div>
+
+            <div class="question-hint" id="question-text">正在下載數據...</div>
+            <div id="data-context" style="background: #263238; padding: 12px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; display:none; border: 1px dashed var(--warn-rust); color: var(--warn-rust);"></div>
+            
+            <div id="game-content">
+                <div id="table-area" style="display:none; margin-bottom: 15px;"></div>
+                <div class="chart-wrapper">
+                    <div id="arrow" class="arrow-pointer"><i class="fas fa-caret-down"></i></div>
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div id="slider-area" style="display:none; margin-top:20px;">
+                    <p id="slider-label" style="color:#b0bec5;">校準中：<span id="slider-val" style="color:var(--warn-rust); font-size:1.5em;">0</span></p>
+                    <input type="range" id="drawSlider" min="0" max="100" value="0" oninput="updateLiveChart(this.value)">
+                </div>
+            </div>
+
+            <div id="feedback" class="feedback-area"></div>
+            <div id="options" class="option-container"></div>
+
+            <div class="control-group">
+                <button class="btn-game btn-reset" onclick="location.reload()">🔄 重啟系統</button>
+                <button class="btn-game btn-submit" id="submit-btn" style="display:none;" onclick="checkSliderAnswer()">✅ 鎖定數據</button>
+                <button class="btn-game btn-pause" onclick="alert('通訊中斷...系統暫停中')">⏸ 暫停連線</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-pill">
+            <div class="footer-left">
+                <div class="footer-dot" aria-hidden="true"></div>
+                <div class="footer-copy">© 2025–2026 Jessie Math 捷析老師. All rights reserved.</div>
+            </div>
+            <div class="footer-center">迷宮無處不在，數學是唯一的出口。</div>
+            <div class="footer-right">
+                <div class="footer-icon" aria-hidden="true"><i class="fas fa-compass"></i></div>
+                <div class="footer-tagline">數學不迷路，Jessie 帶你走向理解。</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 核心邏輯保持不變，確保功能完整 ---
+        let score = 0, timeLeft = 60, combo = 0, myChart = null, timerInterval;
+        let currentCorrectAnswer = null, lastType = -1, isAngleMode = false, isProcessing = false;
+
+        let typeQueue = [];
+        const usedQuestionSignatures = new Set();
+
+        function nextTypeNoRepeat() {
+            if (typeQueue.length === 0) typeQueue = shuffle([0,1,2,3,4]); 
+            return typeQueue.pop();
+        }
+        function makeSignature(obj){
+            try { return JSON.stringify(obj); } catch(e){ return String(obj); }
+        }
+        function commitSignature(sig){
+            if (usedQuestionSignatures.has(sig)) return false;
+            usedQuestionSignatures.add(sig);
+            return true;
+        }
+
+        const themes = [
+            { name: "物資配給", items: ["純淨水", "罐頭", "急救包", "火把", "電池"], unit: "箱" },
+            { name: "迷宮探索", items: ["第1區", "第3區", "第7區", "懸崖區", "中心區"], unit: "小時" },
+            { name: "鬼火獸威脅", items: ["東門", "西門", "北門", "南門"], unit: "隻" },
+            { name: "防禦工事", items: ["石牆", "陷阱", "警報器", "瞭望台"], unit: "座" },
+            { name: "倖存者狀態", items: ["健康", "輕傷", "重傷", "感染", "失蹤"], unit: "人" }
+        ];
+        
+        const colors = ["#d84315", "#455a64", "#00e676", "#fdd835", "#8e24aa", "#5d4037"];
+
+        window.onload = updateLeaderboard;
+
+        function startGame() {
+            if (!document.getElementById('playerName').value) return alert("警告：請輸入行者代號以存取系統！");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            nextQuestion();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            const name = document.getElementById('playerName').value;
+            let scores = JSON.parse(localStorage.getItem('jessieScores') || '[]');
+            scores.push({name, score});
+            scores.sort((a,b) => b.score - a.score);
+            localStorage.setItem('jessieScores', JSON.stringify(scores.slice(0, 10)));
+            alert(`系統關閉！此次績效：${score}`);
+            location.reload();
+        }
+
+        function updateLeaderboard() {
+            const list = document.getElementById('rank-list');
+            let scores = JSON.parse(localStorage.getItem('jessieScores') || '[]');
+            if (scores.length === 0) { list.innerHTML = `<div style="text-align:center;color:#546e7a">伺服器無資料</div>`; return; }
+            list.innerHTML = scores.map((s, i) => `
+                <div class="rank-item">
+                    <span>${i < 3 ? ['🥇','🥈','🥉'][i] : i+1+'.'} ${s.name}</span>
+                    <span>${s.score} pt</span>
+                </div>
+            `).join('');
+        }
+
+        function nextQuestion() {
+            isProcessing = false;
+            const type = nextTypeNoRepeat();
+            lastType = type;
+            document.getElementById('slider-area').style.display = 'none';
+            document.getElementById('table-area').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('data-context').style.display = 'none';
+            document.getElementById('arrow').style.display = 'none';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('options').innerHTML = '';
+            if(myChart) myChart.destroy();
+
+            if (type === 0) taskAnalyze();
+            else if (type === 1) taskDraw();
+            else if (type === 2) taskBugHunt();
+            else if (type === 3) taskConvert();
+            else taskPercentFromTable();
+        }
+
+        function shuffle(arr){ return [...arr].sort(() => 0.5 - Math.random()); }
+        function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+        function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+        function genDistinctValues(n, minV, maxV) {
+            const vals = [];
+            let guard = 0;
+            const minGap = Math.max(8, Math.floor((maxV - minV) / 10));
+            while (vals.length < n && guard < 6000) {
+                guard++;
+                const v = randInt(minV, maxV);
+                const ok = vals.every(x => Math.abs(x - v) >= minGap);
+                if (ok) vals.push(v);
+            }
+            while (vals.length < n) vals.push(minV + vals.length * Math.max(10, Math.floor((maxV-minV)/(n+1))));
+            return vals;
+        }
+
+        // --- 任務函數與圖表更新邏輯保持原狀 ---
+        function taskAnalyze() {
+            for(let tries=0; tries<40; tries++){
+                const theme = themes[Math.floor(Math.random() * themes.length)];
+                const count = randInt(3,5);
+                const selection = shuffle(theme.items).slice(0, count);
+                let minV = 20, maxV = 320;
+                if (theme.unit === "小時") { minV = 1; maxV = 18; }
+                if (theme.unit === "箱") { minV = 10; maxV = 150; }
+                if (theme.unit === "座") { minV = 5; maxV = 50; }
+                const vals = genDistinctValues(count, minV, maxV);
+                const data = selection.map((name, i) => ({ name, val: vals[i] }));
+                data.sort((a,b) => b.val - a.val);
+                const qType = randInt(0,5);
+                let qText = "", correct = "";
+                if (qType === 0) { qText = `數據顯示，哪一項 ${theme.name} 佔比最高？`; correct = data[0].name; }
+                else if (qType === 1) { qText = `數據顯示，哪一項 ${theme.name} 佔比最低？`; correct = data[data.length-1].name; }
+                else if (qType === 2) { qText = `哪一項 ${theme.name} 排名第二？`; correct = data[1].name; }
+                else if (qType === 3) {
+                    qText = `哪一項 ${theme.name} 與榜首差距最小？`;
+                    const top = data[0].val;
+                    let best = data[1];
+                    for (let i=1;i<data.length;i++){ if ((top - data[i].val) < (top - best.val)) best = data[i]; }
+                    correct = best.name;
+                } else if (qType === 4) {
+                    qText = `哪一項 ${theme.name} 最接近平均值？`;
+                    const avg = data.reduce((s,d)=>s+d.val,0)/data.length;
+                    let best = data[0];
+                    data.forEach(d => { if (Math.abs(d.val-avg) < Math.abs(best.val-avg)) best = d; });
+                    correct = best.name;
+                } else {
+                    qText = `哪一項 ${theme.name} 超過平均水準？`;
+                    const avg = data.reduce((s,d)=>s+d.val,0)/data.length;
+                    const above = data.filter(d=>d.val>avg);
+                    if (above.length > 0) correct = above[randInt(0, above.length-1)].name;
+                    else {
+                        let best = data[0];
+                        data.forEach(d => { if (Math.abs(d.val-avg) < Math.abs(best.val-avg)) best = d; });
+                        correct = best.name;
+                        qText = `哪一項 ${theme.name} 最接近平均值？`;
+                    }
+                }
+                const sig = makeSignature({type:"analyze", theme:theme.name, unit:theme.unit, qText, data});
+                if(!commitSignature(sig)) continue;
+                document.getElementById('question-text').innerText = qText;
+                currentCorrectAnswer = correct;
+                let html = `<table class="table-data"><tr><th>項目</th><th>數據 (${theme.unit})</th></tr>`;
+                data.forEach(d => html += `<tr><td>${d.name}</td><td>${d.val}</td></tr>`);
+                document.getElementById('table-area').innerHTML = html + `</table>`;
+                document.getElementById('table-area').style.display = 'block';
+                createOptions(selection);
+                return;
+            }
+            nextQuestion();
+        }
+
+        function taskDraw() {
+            for(let tries=0; tries<40; tries++){
+                isAngleMode = Math.random() > 0.5;
+                let target;
+                if (isAngleMode) {
+                    target = (randInt(3,34)) * 10;
+                    if (target >= 360) target = 350;
+                } else {
+                    const steps = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90];
+                    target = steps[randInt(0, steps.length-1)];
+                }
+                const qText = isAngleMode ? `調整安全閥，繪製圓心角：${target}°` : `調整能量輸出，繪製百分比：${target}%`;
+                const sig = makeSignature({type:"draw", mode:isAngleMode?"angle":"pct", target});
+                if(!commitSignature(sig)) continue;
+                currentCorrectAnswer = target;
+                let slider = document.getElementById('drawSlider');
+                slider.max = isAngleMode ? 360 : 100;
+                slider.value = isAngleMode ? 180 : 50;
+                document.getElementById('question-text').innerText = qText;
+                document.getElementById('slider-area').style.display = 'block';
+                document.getElementById('submit-btn').style.display = 'inline-block';
+                updateLiveChart(slider.value);
+                return;
+            }
+            nextQuestion();
+        }
+
+        function taskBugHunt() {
+            for(let tries=0; tries<50; tries++){
+                const mode = randInt(0,6);
+                const isBug = Math.random() > 0.5;
+                let displayMsg = "", labels = [], data = [], expected = "";
+                function genPctParts(k){
+                    const parts = []; let rest = 100;
+                    for(let i=0;i<k-1;i++){
+                        const maxP = rest - (k-1-i)*5;
+                        const p = clamp(randInt(5, Math.min(45, maxP)), 5, maxP);
+                        parts.push(p); rest -= p;
+                    }
+                    parts.push(rest); return shuffle(parts);
+                }
+                function pctToAngle(p){ return Math.round(p * 3.6); }
+
+                if (mode === 0) {
+                    const pct = [10,15,20,25,30,35,40,45,50][randInt(0,8)];
+                    const trueAngle = pctToAngle(pct);
+                    const shownAngle = isBug ? clamp(trueAngle + [20,30,40,-20,-30,-40][randInt(0,5)], 10, 350) : trueAngle;
+                    displayMsg = `終端顯示 ${pct}%，但圓心角為 ${shownAngle}°，是否吻合？`;
+                    labels = ["目標區", "其餘"]; data = [shownAngle, 360 - shownAngle];
+                    expected = isBug ? "有誤" : "正確";
+                } else if (mode === 1) {
+                    const angle = [30,45,60,72,90,108,120,135,150,180,210,240][randInt(0,11)];
+                    const truePct = Math.round(angle / 3.6);
+                    const shownPct = isBug ? clamp(truePct + [5,8,10,-5,-8,-10][randInt(0,5)], 1, 99) : truePct;
+                    displayMsg = `掃描角度 ${angle}° 對應 ${shownPct}% 能量，是否正確？`;
+                    labels = ["目標區", "其餘"]; data = [angle, 360 - angle];
+                    expected = isBug ? "有誤" : "正確";
+                } else if (mode === 2) {
+                    const k = randInt(3,5); const parts = genPctParts(k);
+                    const names = ["A區","B區","C區","D區","E區"].slice(0,k);
+                    let shown = [...parts];
+                    if (isBug) shown[0] = clamp(shown[0] + 10, 1, 99);
+                    const sum = shown.reduce((s,x)=>s+x,0);
+                    displayMsg = `區域掃描：${names.map((n,i)=>`${n} ${shown[i]}%`).join("、")}。總合是否正確？`;
+                    labels = names; data = shown; expected = (sum === 100) ? "正確" : "有誤";
+                } else if (mode === 3) {
+                    const k = 4; const parts = genPctParts(k);
+                    const names = ["糧食","彈藥","藥品","燃料"];
+                    const shownMissing = isBug ? 99 : parts[0];
+                    const shownParts = parts.map((p,i)=> i===0 ? shownMissing : p);
+                    const sum = shownParts.reduce((s,x)=>s+x,0);
+                    displayMsg = `數據遺失，補上 ${names[0]} ${shownMissing}%。總合是否正確？`;
+                    labels = names; data = shownParts; expected = (sum === 100) ? "正確" : "有誤";
+                } else if (mode === 4) {
+                    const k = 4; const parts = [40, 30, 20, 10];
+                    const names = ["北區","南區","東區","西區"];
+                    const claimIdx = isBug ? 1 : 0;
+                    displayMsg = `報告指出：${names[claimIdx]} 鬼火獸密度最高。是否正確？`;
+                    labels = names; data = parts; expected = (claimIdx === 0) ? "正確" : "有誤";
+                } else if (mode === 5) {
+                    const parts = [50, 20, 30]; const names = ["A","B","C"];
+                    const shownSum = isBug ? 80 : 70;
+                    displayMsg = `戰術分析：A 與 B 資源合計 ${shownSum}%。是否正確？`;
+                    labels = names; data = parts; expected = (shownSum === 70) ? "正確" : "有誤";
+                } else {
+                    const angles = [100, 100, 100, 60]; const names = ["A","B","C","D"];
+                    const shownAngles = isBug ? [100, 100, 100, 100] : angles;
+                    const sumA = shownAngles.reduce((s,x)=>s+x,0);
+                    displayMsg = `圓心角標註：${names.map((n,i)=>`${n} ${shownAngles[i]}°`).join("、")}。總合是否正確？`;
+                    labels = names; data = shownAngles; expected = (sumA === 360) ? "正確" : "有誤";
+                }
+
+                const sig = makeSignature({type:"bughunt", mode, isBug, displayMsg, labels, data, expected});
+                if(!commitSignature(sig)) continue;
+                currentCorrectAnswer = expected;
+                document.getElementById('question-text').innerText = "【異常偵測】數據與圖形匹配檢查：";
+                document.getElementById('data-context').style.display = 'block';
+                document.getElementById('data-context').innerText = displayMsg;
+                document.getElementById('arrow').style.display = 'block';
+                updateChart(data, labels);
+                createOptions(["正確", "有誤"]);
+                return;
+            }
+            nextQuestion();
+        }
+
+        function taskConvert() {
+            const mode = Math.random() > 0.5 ? "角度轉百分率" : "百分率轉角度";
+            if (mode === "角度轉百分率") {
+                const angle = 90; const correct = 25;
+                document.getElementById('question-text').innerText = `圓心角 ${angle}° 換算為能量百分率是多少？`;
+                currentCorrectAnswer = `${correct}%`;
+                createOptions(shuffle(["25%", "30%", "20%", "15%"]));
+                updateChart([90, 270], ["目標區", "其餘"]);
+            } else {
+                const pct = 50; const correct = 180;
+                document.getElementById('question-text').innerText = `能量佔比 ${pct}% 對應圓心角是多少度？`;
+                currentCorrectAnswer = `${correct}°`;
+                createOptions(shuffle(["180°", "90°", "120°", "270°"]));
+                updateChart([180, 180], ["目標區", "其餘"]);
+            }
+        }
+
+        function taskPercentFromTable() {
+            const theme = themes[0]; const data = [{name:"A", val:10}, {name:"B", val:30}];
+            const qText = `在 ${theme.name} 中，A 約占多少百分率？`;
+            document.getElementById('question-text').innerText = qText;
+            currentCorrectAnswer = "25%";
+            let html = `<table class="table-data"><tr><th>類別</th><th>數量</th></tr><tr><td>A</td><td>10</td></tr><tr><td>B</td><td>30</td></tr></table>`;
+            document.getElementById('table-area').innerHTML = html;
+            document.getElementById('table-area').style.display = 'block';
+            createOptions(shuffle(["25%", "50%", "10%", "75%"]));
+            updateChart([10, 30], ["A", "B"]);
+        }
+
+        function updateLiveChart(val) {
+            document.getElementById('slider-val').innerText = val + (isAngleMode ? "°" : "%");
+            updateChart([val, (isAngleMode?360:100) - val], ["設定值", "剩餘"]);
+        }
+
+        function updateChart(data, labels) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'pie',
+                data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#263238', borderWidth: 2 }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: true, 
+                    animation: { duration: 250 }, 
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { color: '#b0bec5', font: { family: 'Courier New' } } } 
+                    } 
+                }
+            });
+        }
+
+        function createOptions(arr) {
+            const div = document.getElementById('options');
+            div.innerHTML = '';
+            arr.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = text;
+                btn.onclick = () => handleAnswer(text);
+                div.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(ans) {
+            if (isProcessing) return;
+            isProcessing = true;
+            if (ans === currentCorrectAnswer) {
+                combo++; score += 100 + (combo * 50); timeLeft += 5;
+                document.getElementById('feedback').innerHTML = `<span class="correct">✅ 數據吻合！</span>`;
+            } else {
+                combo = 0; timeLeft -= 5;
+                document.getElementById('feedback').innerHTML = `<span class="wrong">❌ 解析失敗！</span>`;
+            }
+            document.getElementById('score').innerText = score;
+            document.getElementById('combo').innerText = combo;
+            setTimeout(nextQuestion, 1500);
+        }
+
+        function checkSliderAnswer() {
+            let val = parseInt(document.getElementById('drawSlider').value);
+            let tolerance = isAngleMode ? 10 : 5;
+            if (Math.abs(val - currentCorrectAnswer) <= tolerance) handleAnswer(currentCorrectAnswer);
+            else handleAnswer("誤差過大！");
+        }
+    </script>
+</body>
+</html>
